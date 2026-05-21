@@ -17,6 +17,7 @@ process.on("unhandledRejection", (reason) => {
 const fs = require("fs");
 const path = require("path");
 const BaseUrl = require("../BaseUrl/BaseUrl");
+const CFG = require("../config");
 
 // ensure screenshots directory exists
 const screenshotsDir = path.join(__dirname, "..", "login-screenshots");
@@ -30,14 +31,14 @@ try {
 async function changeLanguageToEnglish(page) {
   const languageBtn = page.locator("a.language_icon[aria-label='Languages']");
 
-  await languageBtn.waitFor({ state: "visible", timeout: 10000 });
+  await languageBtn.waitFor({ state: "visible", timeout: CFG.TIMEOUT_SHORT });
   await languageBtn.click();
 
   const englishOption = page
     .locator(".dropdown-menu a", { hasText: "English" })
     .first();
 
-  await englishOption.waitFor({ state: "visible", timeout: 10000 });
+  await englishOption.waitFor({ state: "visible", timeout: CFG.TIMEOUT_SHORT });
   await englishOption.click();
 
   await page.waitForLoadState("domcontentloaded").catch(() => {});
@@ -49,19 +50,23 @@ async function waitLoginResult(page) {
 
   const loginBtn = page.locator("form button.log-in-btn[type='submit']");
 
-  await loginBtn.waitFor({ state: "visible", timeout: 10000 });
+  await loginBtn.waitFor({ state: "visible", timeout: CFG.TIMEOUT_SHORT });
   await loginBtn.click({ force: true });
 
   try {
     const result = await Promise.race([
-      navbar.waitFor({ state: "visible", timeout: 15000 }).then(() => ({
-        success: true,
-      })),
+      navbar
+        .waitFor({ state: "visible", timeout: CFG.TIMEOUT_MEDIUM })
+        .then(() => ({
+          success: true,
+        })),
 
-      errorMsg.waitFor({ state: "visible", timeout: 15000 }).then(async () => ({
-        success: false,
-        error: (await errorMsg.innerText()).trim(),
-      })),
+      errorMsg
+        .waitFor({ state: "visible", timeout: CFG.TIMEOUT_MEDIUM })
+        .then(async () => ({
+          success: false,
+          error: (await errorMsg.innerText()).trim(),
+        })),
     ]);
 
     return result;
@@ -79,7 +84,7 @@ async function loginTest(role, page) {
     await page.goto(`https://${BaseUrl}.olivery.app/web/login`, {
       waitUntil: "domcontentloaded",
     });
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(CFG.TIMEOUT_TINY);
     await page.getByRole("textbox", { name: "Email" }).fill(role.username);
     await page.getByRole("textbox", { name: "Password" }).fill(role.password);
 
@@ -90,6 +95,11 @@ async function loginTest(role, page) {
     }
 
     await changeLanguageToEnglish(page);
+
+    await page.setDefaultTimeout(10000);
+
+    await page.getByRole("button", { name: "Orders" }).click();
+    await page.getByRole("menuitem", { name: "Active Orders" }).click();
 
     console.log(`✅ Login success: ${role.roleName}`);
 
