@@ -20,6 +20,11 @@ const Roles = [
     password: "12345678",
   },
   {
+    roleName: "data entry",
+    username: "olivery_de",
+    password: "12345678",
+  },
+  {
     roleName: "follow up",
     username: "olivery_cc",
     password: "12345678",
@@ -31,7 +36,7 @@ const Roles = [
   },
   {
     roleName: "accountant",
-    username: "olivery_jc",
+    username: "olivery_j1",
     password: "12345678",
   },
   {

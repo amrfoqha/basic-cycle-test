@@ -1,0 +1,122 @@
+{
+  "runAt": "2026-05-21T13:54:36.869Z",
+  "totalRoles": 12,
+  "successes": 6,
+  "failures": 6,
+  "perRole": [
+    {
+      "roleName": "admin",
+      "success": true,
+      "error": null,
+      "loginMs": 14488,
+      "createMs": 8792,
+      "createTimings": null,
+      "totalMs": 24017
+    },
+    {
+      "roleName": "business",
+      "success": true,
+      "error": null,
+      "loginMs": 9112,
+      "createMs": 9089,
+      "createTimings": null,
+      "totalMs": 18521
+    },
+    {
+      "roleName": "driver",
+      "success": false,
+      "error": "locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('iframe').contentFrame().locator('#REFERENCE_ID')\u001b[22m\n",
+      "loginMs": 10273,
+      "createMs": null,
+      "createTimings": null,
+      "totalMs": 21949
+    },
+    {
+      "roleName": "sales",
+      "success": false,
+      "error": "No create button found",
+      "loginMs": 10464,
+      "createMs": null,
+      "createTimings": null,
+      "totalMs": 21835
+    },
+    {
+      "roleName": "data entry",
+      "success": false,
+      "error": "Order creation failed: success div is not visible",
+      "loginMs": 11312,
+      "createMs": null,
+      "createTimings": null,
+      "totalMs": 33798
+    },
+    {
+      "roleName": "follow up",
+      "success": true,
+      "error": null,
+      "loginMs": 9907,
+      "createMs": 9529,
+      "createTimings": null,
+      "totalMs": 19778
+    },
+    {
+      "roleName": "operation",
+      "success": true,
+      "error": null,
+      "loginMs": 10339,
+      "createMs": 9213,
+      "createTimings": null,
+      "totalMs": 19900
+    },
+    {
+      "roleName": "accountant",
+      "success": false,
+      "error": "Order creation failed: success div is not visible",
+      "loginMs": 9493,
+      "createMs": null,
+      "createTimings": null,
+      "totalMs": 31755
+    },
+    {
+      "roleName": "financial manager",
+      "success": false,
+      "error": "Order creation failed: success div is not visible",
+      "loginMs": 10761,
+      "createMs": null,
+      "createTimings": null,
+      "totalMs": 33061
+    },
+    {
+      "roleName": "office manager",
+      "success": false,
+      "error": "locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('iframe').contentFrame().getByRole('option', { name: 'آوليفيري آونلاين', exact: true }) to be visible\u001b[22m\n",
+      "loginMs": 8738,
+      "createMs": null,
+      "createTimings": null,
+      "totalMs": 24279
+    },
+    {
+      "roleName": "branches manager",
+      "success": true,
+      "error": null,
+      "loginMs": 9736,
+      "createMs": 9532,
+      "createTimings": null,
+      "totalMs": 19606
+    },
+    {
+      "roleName": "super manager",
+      "success": true,
+      "error": null,
+      "loginMs": 11470,
+      "createMs": 9308,
+      "createTimings": null,
+      "totalMs": 21143
+    }
+  ],
+  "avgLoginMs": 10508,
+  "avgCreateMs": 9244,
+  "minLoginMs": 8738,
+  "maxLoginMs": 14488,
+  "minCreateMs": 8792,
+  "maxCreateMs": 9532
+}

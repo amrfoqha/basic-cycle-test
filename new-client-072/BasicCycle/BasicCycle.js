@@ -6,6 +6,8 @@ const CFG = require("../config");
 const loginTest = require("../login/loginTest");
 const Roles = require("../data/Roles");
 const CreateOrderTest = require("../CreateOrder/CreateOrderTest");
+const changeStatusFlow = require("../ChangeStatus/ChangeStatus.Flow");
+const changeStatusPerRole = require("../ChangeStatus/ChangeStatusPerRole");
 
 (async () => {
   const browser = await chromium.launch({
@@ -57,7 +59,11 @@ const CreateOrderTest = require("../CreateOrder/CreateOrderTest");
         results.push(roleResult);
       }
     }
+    //change status from business to cancelled
+    await changeStatusFlow();
 
+    //change status flow for roles
+    await changeStatusPerRole();
     // aggregate statistics
     const summary = {
       runAt: new Date().toISOString(),

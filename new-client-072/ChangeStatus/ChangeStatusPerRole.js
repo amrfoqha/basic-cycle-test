@@ -3,9 +3,12 @@ const fs = require("fs");
 const path = require("path");
 
 const Roles = require("../data/Roles");
+const RolesFlow = require("../data/Roles.Flow");
 const loginTest = require("../login/loginTest");
 const CreateOrderTest = require("../CreateOrder/CreateOrderTest");
 const BaseUrl = require("../BaseUrl/BaseUrl");
+const changeStatusFlow = require("./ChangeStatus.Flow");
+const { ifError } = require("assert");
 const CFG = (() => require("../config"))();
 
 const screenshotsDir = path.join(__dirname, "..", "change-status-screenshots");
@@ -13,10 +16,46 @@ const screenshotsDir = path.join(__dirname, "..", "change-status-screenshots");
 try {
   fs.mkdirSync(screenshotsDir, { recursive: true });
 } catch (e) {}
+async function searchOnRefID(page, orderCreated) {
+  const reference = orderCreated.reference;
 
-// -----------------------------
-// Select first order checkbox
-// -----------------------------
+  const searchBox = page.getByRole("searchbox", { name: "Search..." });
+
+  await searchBox.waitFor({ state: "visible", timeout: 10000 });
+  await searchBox.click();
+
+  await searchBox.press(process.platform === "darwin" ? "Meta+A" : "Control+A");
+  await searchBox.press("Backspace");
+
+  await searchBox.pressSequentially(reference, { delay: 100 });
+
+  const searchOption = page
+    .locator(".o_searchview_autocomplete li, .ui-menu-item, a")
+    .filter({
+      hasText: /Search Reference Id for:/i,
+    })
+    .first();
+
+  try {
+    await searchOption.waitFor({
+      state: "visible",
+      timeout: 5000,
+    });
+
+    await searchOption.click();
+  } catch (error) {
+    await searchBox.press("Enter");
+  }
+
+  await page.waitForTimeout(1500);
+
+  await page.getByRole("cell", { name: orderCreated.reference }).waitFor({
+    state: "visible",
+    timeout: 15000,
+  });
+
+  return true;
+}
 async function selectFirstOrder(page) {
   const checkbox = page
     .locator("td input.custom-control-input[type='checkbox'][id^='checkbox-']")
@@ -42,10 +81,6 @@ async function selectFirstOrder(page) {
 
   return row;
 }
-
-// -----------------------------
-// Open Change State dialog
-// -----------------------------
 async function openChangeStateDialog(page) {
   const changeStateBtn = page.locator(
     "button.oe_action_button_change_state.is-visible"
@@ -66,11 +101,7 @@ async function openChangeStateDialog(page) {
 
   console.log("✅ Change State dialog opened");
 }
-
-// -----------------------------
-// Select canceled status
-// -----------------------------
-async function selectCancelledStatus(page) {
+async function selectStatus(page, status, role) {
   const statusSelect = page.getByLabel("Status");
 
   await statusSelect.waitFor({
@@ -78,14 +109,80 @@ async function selectCancelledStatus(page) {
     timeout: 10000,
   });
 
-  await statusSelect.selectOption('"canceled"');
+  await statusSelect.selectOption(status);
 
-  console.log("✅ Status selected: canceled");
+  console.log(`✅ Status selected: ${status}`);
+
+  // -------------------------
+  // In Branch
+  // -------------------------
+  if (status === "In Branch") {
+    const currentBranchInput = page.getByRole("textbox", {
+      name: "Current Branch",
+    });
+
+    const isBranchVisible = await currentBranchInput.isVisible({
+      timeout: 5000,
+    });
+    await currentBranchInput.click();
+    await page.waitForTimeout(500);
+    await currentBranchInput.press("Enter");
+
+    console.log("✅ Current Branch selected");
+  }
+
+  // -------------------------
+  // In Progress / Delivered
+  // -------------------------
+  if (status === "In Progress" || status === "Delivered") {
+    await page.waitForTimeout(500);
+    const agentInput = page.getByRole("textbox", { name: "Agent" });
+
+    const isAgentVisible = await agentInput
+      .isVisible({ timeout: 5000 })
+      .catch(() => false);
+
+    if (isAgentVisible) {
+      await agentInput.click();
+      await agentInput.fill("olivery_dr");
+
+      await page.waitForTimeout(500);
+
+      await clickExactAutocompleteOption(page, "olivery_dr");
+
+      console.log("✅ Agent selected exactly: olivery_dr");
+    } else {
+      console.log("⚠️ Agent field not visible, skipping agent selection");
+
+      await page.screenshot({
+        path: `../change-status-screenshots/change-status-no-agent-field-${role.roleName}.png`,
+        fullPage: true,
+      });
+    }
+  }
 }
+async function clickExactAutocompleteOption(page, exactText) {
+  const options = page.locator(".ui-menu-item:visible");
 
-// -----------------------------
-// Save state dialog
-// -----------------------------
+  await options.first().waitFor({
+    state: "visible",
+    timeout: 10000,
+  });
+
+  const count = await options.count();
+
+  for (let i = 0; i < count; i++) {
+    const option = options.nth(i);
+    const text = (await option.innerText()).trim();
+
+    if (text === exactText) {
+      await option.click();
+      return;
+    }
+  }
+
+  throw new Error(`Exact autocomplete option not found: ${exactText}`);
+}
 async function saveStateDialog(page) {
   const saveBtn = page.getByRole("button", { name: "Save" });
 
@@ -115,11 +212,7 @@ async function saveStateDialog(page) {
 
   console.log("✅ Confirmation dialog opened");
 }
-
-// -----------------------------
-// Confirm cancel and wait for Odoo RPC
-// -----------------------------
-async function confirmCancel(page) {
+async function confirm(page) {
   const confirmDialog = page
     .locator(".modal, .o_dialog")
     .filter({
@@ -188,47 +281,7 @@ async function confirmCancel(page) {
 
   console.log("✅ Confirm clicked and Odoo refreshed list");
 }
-async function searchOnRefID(page, orderCreated) {
-  const reference = orderCreated.reference;
-
-  const searchBox = page.getByRole("searchbox", { name: "Search..." });
-
-  await searchBox.waitFor({ state: "visible", timeout: 10000 });
-  await searchBox.click();
-
-  await searchBox.press(process.platform === "darwin" ? "Meta+A" : "Control+A");
-  await searchBox.press("Backspace");
-
-  await searchBox.pressSequentially(reference, { delay: 100 });
-
-  const searchOption = page
-    .locator(".o_searchview_autocomplete li, .ui-menu-item, a")
-    .filter({
-      hasText: /Search Reference Id for:/i,
-    })
-    .first();
-
-  try {
-    await searchOption.waitFor({
-      state: "visible",
-      timeout: 5000,
-    });
-
-    await searchOption.click();
-  } catch (error) {
-    await searchBox.press("Enter");
-  }
-
-  await page.waitForTimeout(1500);
-
-  await page.getByRole("cell", { name: orderCreated.reference }).waitFor({
-    state: "visible",
-    timeout: 15000,
-  });
-
-  return true;
-}
-async function changeFirstOrderToCancelled(page, role, orderCreated) {
+async function changeFirstOrderToStatus(page, role, orderCreated, status) {
   await page.waitForTimeout(1500);
 
   await searchOnRefID(page, orderCreated);
@@ -236,11 +289,11 @@ async function changeFirstOrderToCancelled(page, role, orderCreated) {
 
   await openChangeStateDialog(page);
 
-  await selectCancelledStatus(page);
+  await selectStatus(page, status);
 
   await saveStateDialog(page);
 
-  await confirmCancel(page);
+  await confirm(page);
 
   await page.screenshot({
     path: path.join(
@@ -257,7 +310,7 @@ async function changeFirstOrderToCancelled(page, role, orderCreated) {
   };
 }
 
-async function changeStatusFlow() {
+async function changeStatusPerRole() {
   const browser = await chromium.launch({
     headless: CFG.HEADLESS,
     slowMo: CFG.SLOW_MO,
@@ -265,26 +318,24 @@ async function changeStatusFlow() {
 
   const context = await browser.newContext();
   const page = await context.newPage();
-
-  const business = Roles.find(
-    (r) => r.roleName === "business" || r.username === "olivery_bs"
-  );
-
-  if (!business) {
-    throw new Error("Business role not found in Roles.js");
-  }
+  const BusinessRole = Roles.find((r) => r.roleName === "business");
+  console.log(BusinessRole);
+  await loginTest(BusinessRole, page);
+  const orderCreated = await CreateOrderTest(BusinessRole, page);
 
   try {
-    await loginTest(business, page);
-    const orderCreated = await CreateOrderTest(business, page);
-    const result = await changeFirstOrderToCancelled(
-      page,
-      business,
-      orderCreated
-    );
+    for (const role of RolesFlow) {
+      await loginTest(role, page);
+      const result = await changeFirstOrderToStatus(
+        page,
+        role,
+        orderCreated,
+        role.status
+      );
 
-    console.log("✅ Flow completed successfully");
-    console.log(orderCreated.reference);
+      console.log("✅ Flow completed successfully");
+      console.log(orderCreated.reference);
+    }
   } catch (error) {
     console.log("❌ Flow failed:", error.message);
 
@@ -300,4 +351,4 @@ async function changeStatusFlow() {
   }
 }
 
-module.exports = changeStatusFlow;
+module.exports = changeStatusPerRole;

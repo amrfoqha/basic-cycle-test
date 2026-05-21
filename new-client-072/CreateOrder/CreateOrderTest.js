@@ -155,7 +155,55 @@ async function normalCreate(role, page) {
     url: result.url,
   };
 }
+async function selectSenderAfterTyping(frame) {
+  const senderInput = frame.locator("#mat-input-0");
 
+  await senderInput.waitFor({ state: "visible", timeout: 10000 });
+  await senderInput.click();
+  await senderInput.fill("olivery_bs");
+
+  // option 1: olivery_bs
+  const oliveryBsOption = frame.getByRole("option", {
+    name: "olivery_bs",
+    exact: true,
+  });
+
+  const arabicOption = frame.getByRole("option", {
+    name: "آوليفيري آونلاين",
+    exact: true,
+  });
+
+  try {
+    // حاول يختار olivery_bs أولاً
+    await oliveryBsOption.waitFor({
+      state: "visible",
+      timeout: 3000,
+    });
+
+    await oliveryBsOption.click();
+    console.log("✅ Selected sender: olivery_bs");
+  } catch (e) {
+    // إذا مش موجود اختار آوليفيري آونلاين
+    await arabicOption.waitFor({
+      state: "visible",
+      timeout: 10000,
+    });
+
+    await arabicOption.click();
+    console.log("✅ Selected sender: آوليفيري آونلاين");
+  }
+}
+
+async function isFieldVisibleInIframe(page, labelText) {
+  const frame = page.frameLocator("iframe");
+
+  const field = frame
+    .locator("label")
+    .filter({ hasText: new RegExp(`^${labelText}$`) })
+    .first();
+
+  return await field.isVisible({ timeout: 5000 }).catch(() => false);
+}
 async function quickCreate(role, page) {
   const reference = generateReference();
   const frame = page.frameLocator("iframe");
@@ -166,15 +214,12 @@ async function quickCreate(role, page) {
   });
 
   await frame.locator("#REFERENCE_ID").fill(reference);
-  await frame.locator("#mat-input-0").click();
-  await frame.locator("#mat-input-0").fill("olivery_bs");
 
-  // await frame.locator('[id="4024"]').getByRole("button").click();
-  // await frame
-  //   .locator("div")
-  //   .filter({ hasText: /^arrow_drop_down$/ })
-  //   .click();
-  // await frame.getByText("olivery_bs").click();
+  if (await isFieldVisibleInIframe(page, "Sender")) {
+    await selectSenderAfterTyping(frame);
+  } else {
+    console.log("Sender field not found, skipping...");
+  }
 
   await frame.locator("#CUSTOMER_NAME").fill("test");
 
@@ -208,7 +253,7 @@ async function quickCreate(role, page) {
   );
 
   await createBtn.waitFor({ state: "visible", timeout: 10000 });
-  await createBtn.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(1000);
   await createBtn.click({ force: true });
 
   await assertOrderCreatedFromIframe(page);
