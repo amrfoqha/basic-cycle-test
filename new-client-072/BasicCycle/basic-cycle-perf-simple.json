@@ -1,0 +1,93 @@
+{
+  "runAt": "2026-05-21T13:54:36.869Z",
+  "totalRoles": 12,
+  "successes": 6,
+  "failures": 6,
+  "avgTotalMs": 24137,
+  "perRole": [
+    {
+      "roleName": "admin",
+      "success": true,
+      "totalMs": 24017,
+      "loginMs": 14488,
+      "createMs": 8792
+    },
+    {
+      "roleName": "business",
+      "success": true,
+      "totalMs": 18521,
+      "loginMs": 9112,
+      "createMs": 9089
+    },
+    {
+      "roleName": "driver",
+      "success": false,
+      "totalMs": 21949,
+      "loginMs": 10273,
+      "createMs": null
+    },
+    {
+      "roleName": "sales",
+      "success": false,
+      "totalMs": 21835,
+      "loginMs": 10464,
+      "createMs": null
+    },
+    {
+      "roleName": "data entry",
+      "success": false,
+      "totalMs": 33798,
+      "loginMs": 11312,
+      "createMs": null
+    },
+    {
+      "roleName": "follow up",
+      "success": true,
+      "totalMs": 19778,
+      "loginMs": 9907,
+      "createMs": 9529
+    },
+    {
+      "roleName": "operation",
+      "success": true,
+      "totalMs": 19900,
+      "loginMs": 10339,
+      "createMs": 9213
+    },
+    {
+      "roleName": "accountant",
+      "success": false,
+      "totalMs": 31755,
+      "loginMs": 9493,
+      "createMs": null
+    },
+    {
+      "roleName": "financial manager",
+      "success": false,
+      "totalMs": 33061,
+      "loginMs": 10761,
+      "createMs": null
+    },
+    {
+      "roleName": "office manager",
+      "success": false,
+      "totalMs": 24279,
+      "loginMs": 8738,
+      "createMs": null
+    },
+    {
+      "roleName": "branches manager",
+      "success": true,
+      "totalMs": 19606,
+      "loginMs": 9736,
+      "createMs": 9532
+    },
+    {
+      "roleName": "super manager",
+      "success": true,
+      "totalMs": 21143,
+      "loginMs": 11470,
+      "createMs": 9308
+    }
+  ]
+}
