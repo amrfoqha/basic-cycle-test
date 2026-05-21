@@ -187,8 +187,47 @@ async function confirmCancel(page) {
 
   console.log("✅ Confirm clicked and Odoo refreshed list");
 }
+async function searchOnRefID(page, orderCreated) {
+  const reference = orderCreated.reference;
 
-async function changeFirstOrderToCancelled(page, role) {
+  const searchBox = page.getByRole("searchbox", { name: "Search..." });
+
+  await searchBox.waitFor({ state: "visible", timeout: 10000 });
+  await searchBox.click();
+
+  await searchBox.press(process.platform === "darwin" ? "Meta+A" : "Control+A");
+  await searchBox.press("Backspace");
+
+  await searchBox.pressSequentially(reference, { delay: 100 });
+
+  const searchOption = page
+    .locator(".o_searchview_autocomplete li, .ui-menu-item, a")
+    .filter({
+      hasText: /Search Reference Id for:/i,
+    })
+    .first();
+
+  try {
+    await searchOption.waitFor({
+      state: "visible",
+      timeout: 5000,
+    });
+
+    await searchOption.click();
+  } catch (error) {
+    await searchBox.press("Enter");
+  }
+
+  await page.waitForTimeout(1500);
+
+  await page.getByRole("cell", { name: orderCreated.reference }).waitFor({
+    state: "visible",
+    timeout: 15000,
+  });
+
+  return true;
+}
+async function changeFirstOrderToCancelled(page, role, orderCreated) {
   await page.goto(
     "https://new-client-072.olivery.app/web#action=177&model=rb_delivery.order&view_type=list&menu_id=96",
     { waitUntil: "domcontentloaded" }
@@ -196,6 +235,7 @@ async function changeFirstOrderToCancelled(page, role) {
 
   await page.waitForTimeout(1500);
 
+  await searchOnRefID(page, orderCreated);
   await selectFirstOrder(page);
 
   await openChangeStateDialog(page);
@@ -240,12 +280,15 @@ async function changeFirstOrderToCancelled(page, role) {
 
   try {
     await loginTest(business, page);
-    const refID = await CreateOrderTest(business, page);
-    page.waitForTimeout(10000);
-    const result = await changeFirstOrderToCancelled(page, business);
+    const orderCreated = await CreateOrderTest(business, page);
+    const result = await changeFirstOrderToCancelled(
+      page,
+      business,
+      orderCreated
+    );
 
     console.log("✅ Flow completed successfully");
-    console.log(result);
+    console.log(orderCreated.reference);
   } catch (error) {
     console.log("❌ Flow failed:", error.message);
 

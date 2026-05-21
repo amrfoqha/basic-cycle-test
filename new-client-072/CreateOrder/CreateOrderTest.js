@@ -216,10 +216,10 @@ async function quickCreate(role, page) {
 
 async function CreateOrderTest(role, page) {
   try {
-    await page.goto(
-      `https://${BaseUrl}.olivery.app/web#action=177&model=rb_delivery.order&view_type=list&menu_id=96`,
-      { waitUntil: "domcontentloaded" }
-    );
+    // await page.goto(
+    //   `https://${BaseUrl}.olivery.app/web#action=174&model=rb_delivery.order&view_type=list&menu_id=96`,
+    //   { waitUntil: "domcontentloaded" }
+    // );
 
     await page.waitForTimeout(1000);
 
@@ -262,8 +262,6 @@ async function CreateOrderTest(role, page) {
       roleName: role.roleName,
       type: createResult.type,
       reference: createResult.reference,
-      recordId: createResult.recordId || null,
-      url: createResult.url || null,
     };
   } catch (error) {
     console.log(
