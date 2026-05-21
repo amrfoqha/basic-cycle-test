@@ -34,12 +34,11 @@ async function saveOrderAndVerify(page) {
   await saveBtn.click();
 
   const response = await saveResponsePromise;
+  const json = await response.json().catch(() => null);
 
   if (!response.ok()) {
     throw new Error(`Save request failed. Status: ${response.status()}`);
   }
-
-  const json = await response.json().catch(() => null);
 
   if (json?.error) {
     throw new Error(json.error.message || "Odoo returned save error");
@@ -86,7 +85,7 @@ async function assertOrderCreatedFromIframe(page) {
     return true;
   } catch (error) {
     await page.screenshot({
-      path: "create-order-screenshots/order-created-not-created.png",
+      path: "../create-order-screenshots/order-created-not-created.png",
       fullPage: true,
     });
 
@@ -115,7 +114,6 @@ async function normalCreate(role, page) {
   await fullAddress.waitFor({ state: "visible", timeout: 15000 });
   await fullAddress.click();
 
-  // Important: type something to force Odoo autocomplete to load results
   await fullAddress.fill("اريحا");
 
   const firstOption = page.locator(".ui-menu-item:visible").first();
@@ -142,10 +140,9 @@ async function normalCreate(role, page) {
   console.log("Role:", role.roleName);
   console.log("Reference:", reference);
   console.log("Record ID:", result.recordId);
-  console.log("URL:", result.url);
 
   await page.screenshot({
-    path: `create-order-screenshots/order-created-successfully-${role.roleName}.png`,
+    path: `../create-order-screenshots/order-created-successfully-${role.roleName}.png`,
     fullPage: true,
   });
 
@@ -195,12 +192,17 @@ async function quickCreate(role, page) {
 
   await assertOrderCreatedFromIframe(page);
 
+  await page
+    .locator("body")
+    .getByRole("button", { name: "X", exact: true })
+    .click();
+
   console.log("✅ Quick order created successfully");
   console.log("Role:", role.roleName);
   console.log("Reference:", reference);
 
   await page.screenshot({
-    path: `./create-order-screenshots/quick-order-created-successfully-${role.roleName}.png`,
+    path: `../create-order-screenshots/quick-order-created-successfully-${role.roleName}.png`,
     fullPage: true,
   });
 
@@ -219,9 +221,8 @@ async function CreateOrderTest(role, page) {
       { waitUntil: "domcontentloaded" }
     );
 
-    await page.getByRole("button", { name: "Orders" }).click();
-    await page.getByRole("menuitem", { name: "Active Orders" }).click();
     await page.waitForTimeout(1000);
+
     const addButton = page.locator("button.o_list_button_add").first();
 
     const quickOrderButton = page
@@ -240,21 +241,30 @@ async function CreateOrderTest(role, page) {
         .catch(() => null),
     ]);
 
+    let createResult;
+
     if (buttonType === "normal") {
       await addButton.click();
       console.log("✅ Normal create button clicked");
 
-      return await normalCreate(role, page);
-    }
-
-    if (buttonType === "quick") {
+      createResult = await normalCreate(role, page);
+    } else if (buttonType === "quick") {
       await quickOrderButton.click({ force: true });
       console.log("✅ Quick order button clicked");
 
-      return await quickCreate(role, page);
+      createResult = await quickCreate(role, page);
+    } else {
+      throw new Error("No create button found");
     }
 
-    throw new Error("No create button found");
+    return {
+      success: true,
+      roleName: role.roleName,
+      type: createResult.type,
+      reference: createResult.reference,
+      recordId: createResult.recordId || null,
+      url: createResult.url || null,
+    };
   } catch (error) {
     console.log(
       `❌ Create order failed for role ${role.roleName}: ${error.message}`
@@ -268,5 +278,4 @@ async function CreateOrderTest(role, page) {
     throw error;
   }
 }
-
 module.exports = CreateOrderTest;
