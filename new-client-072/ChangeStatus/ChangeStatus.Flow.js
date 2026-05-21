@@ -5,6 +5,7 @@ const path = require("path");
 const Roles = require("../data/Roles");
 const loginTest = require("../login/loginTest");
 const CreateOrderTest = require("../CreateOrder/CreateOrderTest");
+const BaseUrl = require("../BaseUrl/BaseUrl");
 const CFG = (() => require("../config"))();
 
 const screenshotsDir = path.join(__dirname, "..", "change-status-screenshots");
@@ -228,11 +229,6 @@ async function searchOnRefID(page, orderCreated) {
   return true;
 }
 async function changeFirstOrderToCancelled(page, role, orderCreated) {
-  await page.goto(
-    "https://new-client-072.olivery.app/web#action=177&model=rb_delivery.order&view_type=list&menu_id=96",
-    { waitUntil: "domcontentloaded" }
-  );
-
   await page.waitForTimeout(1500);
 
   await searchOnRefID(page, orderCreated);

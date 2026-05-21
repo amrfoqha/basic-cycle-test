@@ -166,21 +166,42 @@ async function quickCreate(role, page) {
   });
 
   await frame.locator("#REFERENCE_ID").fill(reference);
+  await frame.locator("#mat-input-0").click();
+  await frame.locator("#mat-input-0").fill("olivery_bs");
 
-  await frame.locator('[id="4024"]').getByRole("button").click();
-  await frame.getByText("olivery_bs").click();
+  // await frame.locator('[id="4024"]').getByRole("button").click();
+  // await frame
+  //   .locator("div")
+  //   .filter({ hasText: /^arrow_drop_down$/ })
+  //   .click();
+  // await frame.getByText("olivery_bs").click();
 
   await frame.locator("#CUSTOMER_NAME").fill("test");
 
   await frame.locator("#mat-input-3").click();
-  await frame
-    .getByRole("option", { name: "اللبن الشرقي", exact: true })
-    .click();
+  await frame.locator("#mat-input-3").fill("نابلس");
+  const firstOption = frame.locator("mat-option, [role='option']").first();
+
+  await firstOption.waitFor({
+    state: "visible",
+    timeout: 10000,
+  });
+
+  await firstOption.click();
 
   await frame.locator("#CUSTOMER_ADDRESS").fill("test");
   await frame.locator("#CUSTOMER_MOBILE").fill("0987654321");
   await frame.locator("#NOTE").fill("test");
-  await frame.locator("#TOTAL_AMOUNT").fill("120");
+  // await frame.locator("#TOTAL_AMOUNT").fill("120");
+  const totalAmountInput = frame.locator(
+    "input#TOTAL_AMOUNT, input[id='المبلغ الإجمالي شامل التوصيل']"
+  );
+  await totalAmountInput.waitFor({
+    state: "visible",
+    timeout: 10000,
+  });
+
+  await totalAmountInput.fill("120");
 
   const createBtn = frame.locator(
     "button.mat-mdc-raised-button:has(img[src*='thunder.svg'])"
