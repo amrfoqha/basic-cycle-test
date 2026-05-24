@@ -1,5 +1,4 @@
 // Startup log and global error handlers to surface silent failures
-console.log("[loginTest] starting script");
 
 process.on("uncaughtException", (err) => {
   console.error(
@@ -41,7 +40,7 @@ async function changeLanguageToEnglish(page) {
   await englishOption.waitFor({ state: "visible", timeout: CFG.TIMEOUT_SHORT });
   await englishOption.click();
 
-  await page.waitForLoadState("domcontentloaded").catch(() => {});
+  await page.waitForLoadState("domcontentloaded").catch(() => { });
 }
 
 async function waitLoginResult(page) {
